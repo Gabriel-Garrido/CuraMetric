@@ -1,27 +1,25 @@
 import React, { useEffect } from "react";
-import { Tabs, useRouter } from "expo-router";
+import { Tabs, useLocalSearchParams, useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../config/FirebaseConfig";
-import { getLocalStorage } from "../../service/Storage";
+import { auth } from "../../../config/FirebaseConfig";
 
 export default function TabLayout() {
   const router = useRouter();
+  const {id} = useLocalSearchParams("id"); // ✅ Obtiene el parámetro de la URL
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         console.log("Usuario autenticado:", user.uid);
       } else {
-        router?.push("/login"); // Redirige al login si no está autenticado
+        router.push("/login"); // ✅ Redirige al login si no está autenticado
       }
     });
 
-    // Limpia el listener al desmontar el componente
-    return () => unsubscribe();
+    return () => unsubscribe(); // ✅ Limpieza del listener
   }, [router]);
 
- 
   return (
     <Tabs
       screenOptions={{
@@ -42,29 +40,32 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarLabel: "Inicio",
+          tabBarLabel: "Datos del paciente",
           tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="home" size={35} color={color} />
+            <FontAwesome name="user" size={size} color={color} />
           ),
         }}
+        initialParams={{ id }} // ✅ Pasa el parámetro a la pantalla
       />
-        <Tabs.Screen
-          name="PatientList"
-          options={{
-            tabBarLabel: "Pacientes",
-            tabBarIcon: ({ color, size }) => (
-              <FontAwesome name="list" size={size} color={color} />
-            ),
-          }}
-        />
+      <Tabs.Screen
+        name="AddWoundCare"
+        options={{
+          tabBarLabel: "Nueva curación",
+          tabBarIcon: ({ color, size }) => (
+            <FontAwesome name="plus-circle" size={35} color={color} />
+          ),
+        }}
+        initialParams={{ id }} // ✅ Pasa el parámetro a la pantalla
+      />
       <Tabs.Screen
         name="History"
         options={{
-          tabBarLabel: "Historial",
+          tabBarLabel: "Historial de curaciones",
           tabBarIcon: ({ color, size }) => (
             <FontAwesome name="history" size={size} color={color} />
           ),
         }}
+        initialParams={{ id }} // ✅ Pasa el parámetro a la pantalla
       />
     </Tabs>
   );

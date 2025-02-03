@@ -169,18 +169,21 @@ export default function NewPatient() {
     setLoading(true);
     if (!name.trim()) {
       showAlert("Error", "El nombre no puede estar vacío.");
+      setLoading(false);
       return;
     }
 
     // Validación de RUT
     if (!validateRut(rut)) {
       showAlert("Error", "Debe ingresar un RUT válido.");
+      setLoading(false);
       return;
     }
 
     // Validación de fecha de nacimiento
     if (!dob) {
       showAlert("Error", "Debe ingresar una fecha de nacimiento válida.");
+      setLoading(false);
       return;
     }
 
@@ -192,6 +195,7 @@ export default function NewPatient() {
 
     } catch (error) {
       showAlert("Error", "La fecha seleccionada no es válida.");
+      setLoading(false);
       return;
     }
 
@@ -216,12 +220,12 @@ export default function NewPatient() {
         createdAt: Timestamp.now(),
         id: docId,
       });
-      showAlert("Éxito", "Paciente guardado correctamente.");
       setLoading(false);
+      showAlert("Éxito", "Paciente guardado correctamente.");
       router.push("/");
     } catch (err) {
-      showAlert("Error al guardar", err.message);
       setLoading(false);
+      showAlert("Error al guardar", err.message);
     }
   };
 
@@ -301,7 +305,11 @@ export default function NewPatient() {
               <Text style={styles.checkboxLabel}>{condition}</Text>
             </View>
           ))}
-          {loading?<ActivityIndicator size="large" color={Colors.primaryBlue} />:
+          {loading?<ActivityIndicator size={'large'} style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}/>:
           <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Guardar</Text>
           </TouchableOpacity>}

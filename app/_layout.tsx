@@ -2,7 +2,6 @@ import { Stack } from "expo-router";
 import { Platform, View, StyleSheet } from "react-native"; // Importa Platform y StyleSheet correctamente
 
 export default function RootLayout() {
-
   if (Platform.OS === 'web') {
     return (
       <View style={styles.webContainer}>
