@@ -48,7 +48,7 @@ export default function TabLayout() {
         initialParams={{ id }} // ✅ Pasa el parámetro a la pantalla
       />
       <Tabs.Screen
-        name="AddWoundCare"
+        name="WoundList"
         options={{
           tabBarLabel: "Nueva curación",
           tabBarIcon: ({ color, size }) => (

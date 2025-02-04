@@ -4,9 +4,11 @@ import {
   Text,
   ActivityIndicator,
   FlatList,
+  TouchableOpacity,
+  Alert,
   StyleSheet,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import Header from "../../../components/Header";
 import BackBtn from "../../../components/BackBtn";
@@ -14,26 +16,24 @@ import Colors from "../../../constant/Colors";
 import { db } from "../../../config/FirebaseConfig";
 
 export default function History() {
-  const { id } = useLocalSearchParams(); // Obtiene el ID del paciente
+  const { id } = useLocalSearchParams(); // ID del paciente
+  const router = useRouter();
   const [patientData, setPatientData] = useState(null);
-  const [curations, setCurations] = useState([]);
+  const [wounds, setWounds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Estado para manejar errores
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!id) {
-      console.log('id del paciente: ', id);
-      
       setError("No se encontró el ID del paciente.");
       setLoading(false);
       return;
     }
-
     fetchPatientData(id);
-    fetchCurations(id);
+    fetchWounds(id);
   }, [id]);
 
-  // Obtiene los datos del paciente con mejor manejo de errores
+  // Obtiene los datos del paciente
   const fetchPatientData = async (patientId) => {
     try {
       const docRef = doc(db, "patients", patientId);
@@ -46,27 +46,27 @@ export default function History() {
       }
     } catch (error) {
       console.error("Error al obtener paciente:", error);
-      setError("Ocurrió un error al obtener los datos del paciente.");
+      setError("Error al obtener los datos del paciente.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Obtiene las curaciones del paciente
-  const fetchCurations = async (patientId) => {
+  // Obtiene las heridas del paciente
+  const fetchWounds = async (patientId) => {
     try {
-      const curationsRef = collection(db, "patients", patientId, "curations");
-      const snapshot = await getDocs(curationsRef);
-      let curationList = [];
+      const woundsRef = collection(db, "patients", patientId, "wounds");
+      const snapshot = await getDocs(woundsRef);
+      let woundList = [];
 
       snapshot.forEach((doc) => {
-        curationList.push({ id: doc.id, ...doc.data() });
+        woundList.push({ id: doc.id, ...doc.data() });
       });
 
-      setCurations(curationList);
+      setWounds(woundList);
     } catch (error) {
-      console.error("Error al obtener curaciones:", error);
-      setError("Ocurrió un error al obtener el historial de curaciones.");
+      console.error("Error al obtener heridas:", error);
+      setError("Error al obtener el historial de heridas.");
     }
   };
 
@@ -88,51 +88,53 @@ export default function History() {
               <Text style={styles.patientName}>{patientData.name}</Text>
             </View>
 
-            <Text style={styles.sectionTitle}>Historial de Curaciones</Text>
+            <Text style={styles.sectionTitle}>Historial de Heridas</Text>
 
-            {/* Lista de curaciones */}
+            {/* Lista de heridas */}
             <FlatList
-              data={curations}
+              data={wounds}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <View style={styles.curationItem}>
-                  <Text style={styles.curationLocation}>
-                    {item.location}
+                <View style={styles.woundItem}>
+                  <Text style={styles.woundLocation}>
+                    Localización: {item.location}
                   </Text>
-                  <Text style={styles.curationDate}>
-                    {item.createdAt?.seconds
-                      ? new Date(item.createdAt.seconds * 1000).toLocaleString(
-                          "es-ES",
-                          {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )
-                      : "Fecha desconocida"}
+                  <Text style={styles.woundDate}>
+                    Fecha de origen:{" "}
+                    {item.date?.seconds
+                      ? new Date(item.date.seconds * 1000).toLocaleDateString("es-ES")
+                      : "Desconocida"}
                   </Text>
+                  <Text style={styles.woundOrigin}>Origen: {item.origin}</Text>
+
+                  {/* Botón para ver evolución */}
+                  <TouchableOpacity
+                    style={styles.evolutionButton}
+                    onPress={() => router.push({ 
+                      pathname: `/patient/WoundCareHistory`, 
+                      params: { id, woundId: item.id } 
+                    })}
+                  >
+                    <Text style={styles.evolutionButtonText}>Ver Evolución</Text>
+                  </TouchableOpacity>
                 </View>
               )}
               ListEmptyComponent={
                 <Text style={styles.emptyText}>
-                  No hay curaciones registradas.
+                  No hay heridas registradas.
                 </Text>
               }
             />
           </View>
         ) : (
-          <Text style={styles.errorText}>
-            No se encontró información del paciente.
-          </Text>
+          <Text style={styles.errorText}>No se encontró información del paciente.</Text>
         )}
       </View>
     </View>
   );
 }
 
-// 🎨 Estilos mejorados
+// 🎨 **Estilos mejorados**
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -149,12 +151,12 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   nameRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingBottom: 15,
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.borderGray,
-    },
+    flexDirection: "row",
+    alignItems: "center",
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderGray,
+  },
   patientName: {
     fontSize: 24,
     fontWeight: "bold",
@@ -167,20 +169,39 @@ const styles = StyleSheet.create({
     color: Colors.primaryBlue,
     marginTop: 20,
   },
-  curationItem: {
+  woundItem: {
     padding: 15,
     marginVertical: 8,
     backgroundColor: Colors.secondaryLightBlue,
     borderRadius: 10,
   },
-  curationLocation: {
+  woundLocation: {
     fontSize: 16,
+    fontWeight: "bold",
     color: Colors.neutralDarkGray,
   },
-  curationDate: {
+  woundDate: {
     fontSize: 14,
     color: Colors.neutralGray,
     marginTop: 5,
+  },
+  woundOrigin: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: Colors.primaryBlue,
+    marginTop: 5,
+  },
+  evolutionButton: {
+    marginTop: 10,
+    paddingVertical: 8,
+    backgroundColor: Colors.primaryGreen,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  evolutionButtonText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: Colors.neutralWhite,
   },
   emptyText: {
     fontSize: 14,
@@ -201,3 +222,4 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+

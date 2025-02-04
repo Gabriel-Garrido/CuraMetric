@@ -11,22 +11,20 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { doc, collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "../../../config/FirebaseConfig";
-import Header from "../../../components/Header";
-import Colors from "../../../constant/Colors";
-import BackBtn from "../../../components/BackBtn";
+import { db } from "../../config/FirebaseConfig";
+import Header from "../../components/Header";
+import Colors from "../../constant/Colors";
 
-/** Picker nativo en web y modal en mobile */
-import { Picker } from "@react-native-picker/picker";
-import PickerComponent from "../../../components/PickerComponent";
+/** Componentes */
+import PickerComponent from "../../components/PickerComponent";
+import BackBtn from "../../components/BackBtn";
 
 export default function AddWoundCare() {
-  const { id } = useLocalSearchParams(); // Obtiene el ID del paciente
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const { id, woundId } = useLocalSearchParams(); // Recibimos el ID del paciente y la herida
 
   // Campos del formulario
-  const [location, setLocation] = useState("");
   const [width, setWidth] = useState("");
   const [height, setHeight] = useState("");
   const [depth, setDepth] = useState("");
@@ -39,22 +37,13 @@ export default function AddWoundCare() {
   const [slough, setSlough] = useState("");
   const [necroticTissue, setNecroticTissue] = useState("");
 
-  /** Modales para los pickers en Mobile */
-  const [modalVisible, setModalVisible] = useState(null);
-
   // Validación de campos numéricos
   const isNumeric = (value) => /^\d+(\.\d+)?$/.test(value);
 
   // Función para guardar la curación en Firestore
   const handleSaveWoundCare = async () => {
-    if (!id) {
-      Alert.alert("Error", "No se encontró el ID del paciente.");
-      return;
-    }
-
-    // Validación de campos obligatorios
-    if (!location.trim()) {
-      Alert.alert("Error", "Debe ingresar la localización de la herida.");
+    if (!id || !woundId) {
+      Alert.alert("Error", "No se encontró el ID del paciente o la herida.");
       return;
     }
 
@@ -71,12 +60,13 @@ export default function AddWoundCare() {
       return;
     }
 
-    if (
-      parseFloat(granulationTissue) +
-        parseFloat(slough) +
-        parseFloat(necroticTissue) >
-      100
-    ) {
+    // Validar que la suma de los tejidos no supere el 100%
+    const totalTissue =
+      parseFloat(granulationTissue || 0) +
+      parseFloat(slough || 0) +
+      parseFloat(necroticTissue || 0);
+
+    if (totalTissue > 100) {
       Alert.alert(
         "Error",
         "La suma de los porcentajes de tejidos no puede superar el 100%."
@@ -87,11 +77,16 @@ export default function AddWoundCare() {
     setLoading(true);
 
     try {
-      const patientDocRef = doc(db, "patients", id);
-      const curationRef = collection(patientDocRef, "curations");
+      const woundCareRef = collection(
+        db,
+        "patients",
+        id,
+        "wounds",
+        woundId,
+        "woundCare"
+      );
 
-      await addDoc(curationRef, {
-        location,
+      await addDoc(woundCareRef, {
         width: parseFloat(width),
         height: parseFloat(height),
         depth: parseFloat(depth),
@@ -108,15 +103,13 @@ export default function AddWoundCare() {
 
       setLoading(false);
       Alert.alert("Éxito", "Curación agregada correctamente.");
-      router.push(`/patient/${id}/History`);
+      router.push(`/patient/${id}/WoundList`); // Redirige al listado de heridas del paciente
     } catch (error) {
       setLoading(false);
       console.error("Error al guardar la curación:", error);
       Alert.alert("Error", "No se pudo guardar la curación.");
     }
   };
-
-  
 
   return (
     <KeyboardAvoidingView behavior="height" style={{ flex: 1 }}>
@@ -128,101 +121,66 @@ export default function AddWoundCare() {
             <Text style={styles.title}>Nueva Curación</Text>
           </View>
 
-          <Text style={styles.label}>Localización de la herida</Text>
-          <TextInput style={styles.input} value={location} onChangeText={setLocation} />
-
           <Text style={styles.label}>Tamaño (cm)</Text>
           <View style={styles.row}>
-            <TextInput style={[styles.input, styles.smallInput]} keyboardType="numeric" value={width} onChangeText={setWidth} placeholder="Ancho" placeholderTextColor={Colors.neutralGray} />
-            <TextInput style={[styles.input, styles.smallInput]} keyboardType="numeric" value={height} onChangeText={setHeight} placeholder="Alto" placeholderTextColor={Colors.neutralGray}/>
-            <TextInput style={[styles.input, styles.smallInput]} keyboardType="numeric" value={depth} onChangeText={setDepth} placeholder="Prof." placeholderTextColor={Colors.neutralGray}/>
+            <TextInput
+              style={[styles.input, styles.smallInput]}
+              keyboardType="numeric"
+              value={width}
+              onChangeText={setWidth}
+              placeholder="Ancho"
+              placeholderTextColor={Colors.neutralGray}
+            />
+            <TextInput
+              style={[styles.input, styles.smallInput]}
+              keyboardType="numeric"
+              value={height}
+              onChangeText={setHeight}
+              placeholder="Alto"
+              placeholderTextColor={Colors.neutralGray}
+            />
+            <TextInput
+              style={[styles.input, styles.smallInput]}
+              keyboardType="numeric"
+              value={depth}
+              onChangeText={setDepth}
+              placeholder="Prof."
+              placeholderTextColor={Colors.neutralGray}
+            />
           </View>
 
           <Text style={styles.label}>Tejidos (%)</Text>
-<View style={styles.row}>
-  <View style={styles.tejidoContainer}>
-    <Text style={styles.tejidoLabel}>Granulatorio</Text>
-    <TextInput
-      style={[styles.input, styles.tejidoInput]}
-      keyboardType="numeric"
-      value={granulationTissue}
-      onChangeText={(value) => {
-        if (parseFloat(value) > 100) {
-          
-        } else {
-          setGranulationTissue(value);
-        }
-      }}
-      placeholder="0"
-      placeholderTextColor={Colors.neutralGray}
-    />
-  </View>
-  <View style={styles.tejidoContainer}>
-    <Text style={styles.tejidoLabel}>Esfacelado</Text>
-    <TextInput
-      style={[styles.input, styles.tejidoInput]}
-      keyboardType="numeric"
-      value={slough}
-      onChangeText={(value) => {
-        if (parseFloat(value) > 100) {
-          
-        } else {
-          setSlough(value);
-        }
-      }}
-      placeholder="0"
-      placeholderTextColor={Colors.neutralGray}
-    />
-  </View>
-  <View style={styles.tejidoContainer}>
-    <Text style={styles.tejidoLabel}>Necrótico</Text>
-    <TextInput
-      style={[styles.input, styles.tejidoInput]}
-      keyboardType="numeric"
-      value={necroticTissue}
-      onChangeText={(value) => {
-        if (parseFloat(value) > 100) {
-          
-        } else {
-          setNecroticTissue(value);
-        }
-      }}
-      placeholder="0"
-      placeholderTextColor={Colors.neutralGray}
-    />
-  </View>
-</View>
-
+          <View style={styles.row}>
+            {[
+              { label: "Granulatorio", value: granulationTissue, setValue: setGranulationTissue },
+              { label: "Esfacelado", value: slough, setValue: setSlough },
+              { label: "Necrótico", value: necroticTissue, setValue: setNecroticTissue },
+            ].map((item, index) => (
+              <View key={index} style={styles.tejidoContainer}>
+                <Text style={styles.tejidoLabel}>{item.label}</Text>
+                <TextInput
+                  style={[styles.input, styles.tejidoInput]}
+                  keyboardType="numeric"
+                  value={item.value}
+                  onChangeText={(value) => {
+                    if (parseFloat(value) > 100) return;
+                    item.setValue(value);
+                  }}
+                  placeholder="0"
+                  placeholderTextColor={Colors.neutralGray}
+                />
+              </View>
+            ))}
+          </View>
 
           <Text style={styles.label}>Bordes</Text>
-          <PickerComponent selectedValue={borders} setSelectedValue={setBorders} options={["Regulares", "Irregulares", "Engrosados", "Invertidos", "Socavados"]} label={"Bordes"}/>
+          <PickerComponent selectedValue={borders} setSelectedValue={setBorders} options={["Regulares", "Irregulares", "Engrosados", "Invertidos", "Socavados"]} label={"Bordes"} />
 
           <Text style={styles.label}>Piel circundante</Text>
           <PickerComponent selectedValue={surroundingSkin} setSelectedValue={setSurroundingSkin} options={["Sana", "Eritematosa", "Descamativa", "Macerada"]} label={"Piel Circundante"} />
 
           <Text style={styles.label}>Edema</Text>
           <PickerComponent selectedValue={edema} setSelectedValue={setEdema} options={["+", "++", "+++"]} label={"Edema"} />
-
-          <Text style={styles.label}>Exudado</Text>
-          <View style={styles.row}>
-
-
-          <PickerComponent
-            selectedValue={exudateAmount}
-            setSelectedValue={setExudateAmount}
-            options={["Ausente", "Escaso", "Moderado", "Abundante"]}
-            label="Cantidad"
-          />
-
-          {exudateAmount !== "Ausente" && (
-            <PickerComponent
-              selectedValue={exudateType}
-              setSelectedValue={setExudateType}
-              options={["Seroso", "Sanguinolento", "Purulento"]}
-              label="Calidad"
-            />
-          )}
-          </View>
 
           <TouchableOpacity style={styles.saveButton} onPress={handleSaveWoundCare}>
             <Text style={styles.saveButtonText}>Guardar Curación</Text>
@@ -232,7 +190,6 @@ export default function AddWoundCare() {
     </KeyboardAvoidingView>
   );
 }
-
 
 
 // 🎨 Estilos
@@ -280,7 +237,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "flex-start",
-    width: '100%'
+    width: "100%",
   },
   saveButton: {
     backgroundColor: Colors.primaryGreen,
@@ -308,7 +265,6 @@ const styles = StyleSheet.create({
   tejidoInput: {
     textAlign: "center",
     flex: 1,
-    width: '100%'
+    width: "100%",
   },
-  
 });

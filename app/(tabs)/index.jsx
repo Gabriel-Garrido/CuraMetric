@@ -16,18 +16,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true)
     // Verifica la autenticación del usuario
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUserName(user.displayName || "Usuario");
-        setUserEmail(user.email); // Guardar el email del usuario autenticado
-        fetchPatients(user.email); // Llamar a la función para filtrar pacientes
+        setUserName(user?.displayName || "Usuario");
+        setUserEmail(user?.email); // Guardar el email del usuario autenticado
+        fetchPatients(user?.email); // Llamar a la función para filtrar pacientes
       }
     });
-
+    setLoading(false)
+    
+    
     return () => unsubscribe();
   }, []);
-
+  
   const fetchPatients = async (email) => {
     if (!email) return; // No ejecutar si no hay un email válido
     setLoading(true);
@@ -46,10 +49,11 @@ export default function Home() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex:1}}>
+    {loading?<ActivityIndicator/>:<View style={{ flex: 1 }}>
       <Header />
       <View style={styles.container}>
-      <Text style={styles.welcomeText}>Hola, {userName} 👋</Text>
+       <Text style={styles.welcomeText}>Hola, {userName} 👋</Text>
       <Text style={styles.subtitle}>Bienvenido a CuraMetric</Text>
 
       {/* Acceso rápido a la lista de pacientes */}
@@ -101,8 +105,9 @@ export default function Home() {
         />
       )}
     </View>
+    </View>}
     </View>
-  );
+  )
 }
 
 // Estilos mejorados

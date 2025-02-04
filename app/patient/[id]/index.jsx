@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, FlatList, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, FlatList, StyleSheet, ScrollView } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../../config/FirebaseConfig';
@@ -9,15 +9,13 @@ import BackBtn from '../../../components/BackBtn';
 import { Temporal } from '@js-temporal/polyfill';
 
 export default function PatientDetails() {
-  const { id } = useLocalSearchParams(); // Recibe el ID del paciente desde la URL
+  const { id } = useLocalSearchParams(); // ID del paciente desde la URL
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (id) {
       fetchPatientData(id);
-      console.log('ID del paciente:', id);
-      
     }
   }, [id]);
 
@@ -30,22 +28,20 @@ export default function PatientDetails() {
       if (docSnap.exists()) {
         setPatientData(docSnap.data());
       } else {
-        console.log('No such document!');
+        console.log('No se encontró el documento.');
       }
     } catch (error) {
-      console.error('Error fetching patient:', error);
+      console.error('Error al obtener datos del paciente:', error);
     }
     setLoading(false);
   };
 
-  // 🔹 Nueva función para calcular correctamente la edad con `Temporal`
   const calculateAge = (dobString) => {
     if (!dobString) return "Edad no disponible";
-
     try {
-      const dob = Temporal.PlainDate.from(dobString.split("T")[0]); // Obtiene la fecha de nacimiento
-      const today = Temporal.Now.plainDateISO(); // Fecha actual en formato ISO
-      const difference = today.since(dob, { largestUnit: "years" }); // Calcula la diferencia en años
+      const dob = Temporal.PlainDate.from(dobString.split("T")[0]); 
+      const today = Temporal.Now.plainDateISO(); 
+      const difference = today.since(dob, { largestUnit: "years" }); 
       return `${difference.years} años`;
     } catch (error) {
       console.error("Error al calcular la edad:", error);
@@ -54,41 +50,41 @@ export default function PatientDetails() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.neutralWhite }}>
+    <View style={styles.screen}>
       <Header />
-
+      
       {loading ? (
-        <ActivityIndicator size={'large'} style={{
-                  flex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}/>
+        <ActivityIndicator size="large" style={styles.loadingIndicator} />
       ) : patientData ? (
-        <View style={styles.container}>
-          {/* Nombre en una fila con el botón de regreso */}
-          <View style={styles.nameRow}>
+        <View>
+          {/* Header con nombre y botón de regreso */}
+      <View style={styles.nameRow}>
             <BackBtn />
             <Text style={styles.patientName}>{patientData.name}</Text>
           </View>
 
-          {/* Datos del paciente */}
-          <View style={styles.patientInfo}>
-            <Text style={styles.infoLabel}>Edad:</Text>
-            <Text style={styles.infoText}>{calculateAge(patientData.dob)}</Text>
+        
+        <ScrollView contentContainerStyle={styles.container}>
+          
 
-            <Text style={styles.infoLabel}>RUT:</Text>
-            <Text style={styles.infoText}>{patientData.rut}</Text>
-
-            <Text style={styles.infoLabel}>Registrado por:</Text>
-            <Text style={styles.infoText}>
-              {patientData.userName} ({patientData.userEmail})
-            </Text>
+          {/* Información General */}
+          <View style={styles.infoCard}>
+            <Text style={styles.sectionTitle}>📌 Información General</Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>📅 Edad:</Text>
+              <Text style={styles.infoText}>{calculateAge(patientData.dob)}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>🆔 RUT:</Text>
+              <Text style={styles.infoText}>{patientData.rut}</Text>
+            </View>
           </View>
 
           {/* Condiciones Crónicas */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Condiciones Crónicas</Text>
+          <View style={styles.infoCard}>
+            <Text style={styles.sectionTitle}>⚕️ Condiciones Crónicas</Text>
             <FlatList
+            scrollEnabled={false}
               data={patientData.selectedRelevantConditions}
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item }) => <Text style={styles.listItem}>• {item}</Text>}
@@ -97,15 +93,17 @@ export default function PatientDetails() {
           </View>
 
           {/* Condiciones Predisponentes */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Condiciones Predisponentes</Text>
+          <View style={styles.infoCard}>
+            <Text style={styles.sectionTitle}>🩺 Condiciones Predisponentes</Text>
             <FlatList
+              scrollEnabled={false}
               data={patientData.selectedPredispositions}
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item }) => <Text style={styles.listItem}>• {item}</Text>}
               ListEmptyComponent={<Text style={styles.emptyText}>Sin predisposiciones registradas</Text>}
             />
           </View>
+        </ScrollView>
         </View>
       ) : (
         <Text style={styles.errorText}>No se encontró información del paciente.</Text>
@@ -114,12 +112,20 @@ export default function PatientDetails() {
   );
 }
 
-// Estilos mejorados
+// **Estilos mejorados**
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
+    backgroundColor: Colors.neutralWhite,
+  },
+  loadingIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingBottom: 20,
   },
   nameRow: {
     flexDirection: 'row',
@@ -127,18 +133,35 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderGray,
+    marginTop:20,
+    marginStart: 20
   },
   patientName: {
-      fontSize: 24,
-      fontWeight: "bold",
-      color: Colors.primaryBlue,
-      marginLeft: 10,
-    },
-  patientInfo: {
-    marginTop: 20,
+    fontSize: 24,
+    fontWeight: "bold",
+    color: Colors.primaryBlue,
+    marginLeft: 10,
+  },
+  infoCard: {
+    backgroundColor: Colors.secondaryLightBlue,
     padding: 15,
     borderRadius: 10,
-    backgroundColor: Colors.secondaryLightBlue,
+    marginTop: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.primaryBlue,
+    marginBottom: 10,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: 6,
   },
   infoLabel: {
     fontSize: 16,
@@ -148,16 +171,6 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 16,
     color: Colors.neutralGray,
-    marginBottom: 8,
-  },
-  section: {
-    marginTop: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.primaryBlue,
-    marginBottom: 8,
   },
   listItem: {
     fontSize: 16,
@@ -176,3 +189,4 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
+
