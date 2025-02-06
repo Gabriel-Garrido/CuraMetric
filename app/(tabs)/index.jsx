@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { collection, getDocs, query, where } from 'firebase/firestore';
@@ -50,8 +50,9 @@ export default function Home() {
 
   return (
     <View style={{flex:1}}>
-    {loading?<ActivityIndicator/>:<View style={{ flex: 1 }}>
+      {loading?<ActivityIndicator/>:<View style={{ flex: 1 }}>
       <Header />
+      <Image source={require('../../assets/images/background-login.png')} style={{width:'100%', height:300 }}/>
       <View style={styles.container}>
        <Text style={styles.welcomeText}>Hola, {userName} 👋</Text>
       <Text style={styles.subtitle}>Bienvenido a CuraMetric</Text>

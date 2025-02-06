@@ -57,15 +57,7 @@ export default function TabLayout() {
             ),
           }}
         />
-      <Tabs.Screen
-        name="History"
-        options={{
-          tabBarLabel: "Historial",
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="history" size={size} color={color} />
-          ),
-        }}
-      />
+
     </Tabs>
   );
 }
