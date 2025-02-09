@@ -9,11 +9,9 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import Header from "../../../components/Header";
 import BackBtn from "../../../components/BackBtn";
 import Colors from "../../../constant/Colors";
-import { db } from "../../../config/FirebaseConfig";
 
 export default function History() {
   const { id } = useLocalSearchParams(); // ID del paciente

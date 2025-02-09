@@ -1,7 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
-import { signOut } from 'firebase/auth';
-import { auth } from '../config/FirebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import Colors from '../constant/Colors';

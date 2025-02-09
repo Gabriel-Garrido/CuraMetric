@@ -3,8 +3,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import Header from '../../components/Header';
 import NoPatients from '../../components/NoPatients';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../config/FirebaseConfig';
 import { getLocalStorage } from '../../service/Storage';
 import Colors from '../../constant/Colors';
 import PatientItem from '../../components/PatientItem';

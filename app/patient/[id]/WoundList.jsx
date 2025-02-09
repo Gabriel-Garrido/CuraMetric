@@ -9,8 +9,6 @@ import {
   StyleSheet,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../../config/FirebaseConfig";
 import Header from "../../../components/Header";
 import Colors from "../../../constant/Colors";
 import BackBtn from "../../../components/BackBtn";

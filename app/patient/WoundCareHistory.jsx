@@ -8,9 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import BackBtn from "../../components/BackBtn";
-import { db } from "../../config/FirebaseConfig";
 import Header from "../../components/Header";
 import Colors from "../../constant/Colors";
 import { LineChart } from "react-native-chart-kit";

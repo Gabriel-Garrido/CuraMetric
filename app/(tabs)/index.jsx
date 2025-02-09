@@ -1,10 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { collection, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../../config/FirebaseConfig';
-import { auth } from '../../config/FirebaseConfig';
-import { onAuthStateChanged } from 'firebase/auth';
 import Header from '../../components/Header';
 import Colors from '../../constant/Colors';
 
@@ -13,40 +9,8 @@ export default function Home() {
   const [userName, setUserName] = useState("Usuario");
   const [userEmail, setUserEmail] = useState(null);
   const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true)
-    // Verifica la autenticación del usuario
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserName(user?.displayName || "Usuario");
-        setUserEmail(user?.email); // Guardar el email del usuario autenticado
-        fetchPatients(user?.email); // Llamar a la función para filtrar pacientes
-      }
-    });
-    setLoading(false)
-    
-    
-    return () => unsubscribe();
-  }, []);
+  const [loading, setLoading] = useState(false);
   
-  const fetchPatients = async (email) => {
-    if (!email) return; // No ejecutar si no hay un email válido
-    setLoading(true);
-
-    try {
-      const patientQuery = query(collection(db, 'patients'), where('userEmail', '==', email));
-      const snapshot = await getDocs(patientQuery);
-      const patientList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      setPatients(patientList);
-    } catch (error) {
-      console.error("Error al obtener pacientes:", error);
-    }
-
-    setLoading(false);
-  };
 
   return (
     <View style={{flex:1}}>

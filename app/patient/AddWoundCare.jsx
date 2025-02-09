@@ -10,8 +10,6 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { doc, collection, addDoc, Timestamp } from "firebase/firestore";
-import { db } from "../../config/FirebaseConfig";
 import Header from "../../components/Header";
 import Colors from "../../constant/Colors";
 

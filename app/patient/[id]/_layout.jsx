@@ -1,24 +1,8 @@
 import React, { useEffect } from "react";
 import { Tabs, useLocalSearchParams, useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../../config/FirebaseConfig";
 
 export default function TabLayout() {
-  const router = useRouter();
-  const {id} = useLocalSearchParams("id"); // ✅ Obtiene el parámetro de la URL
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("Usuario autenticado:", user.uid);
-      } else {
-        router.push("/login"); // ✅ Redirige al login si no está autenticado
-      }
-    });
-
-    return () => unsubscribe(); // ✅ Limpieza del listener
-  }, [router]);
 
   return (
     <Tabs

@@ -1,27 +1,11 @@
 import React, { useEffect } from "react";
 import { Tabs, useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../config/FirebaseConfig";
 import { getLocalStorage } from "../../service/Storage";
 
 export default function TabLayout() {
   const router = useRouter();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("Usuario autenticado:", user.uid);
-      } else {
-        router?.push("/login"); // Redirige al login si no está autenticado
-      }
-    });
-
-    // Limpia el listener al desmontar el componente
-    return () => unsubscribe();
-  }, [router]);
-
- 
   return (
     <Tabs
       screenOptions={{

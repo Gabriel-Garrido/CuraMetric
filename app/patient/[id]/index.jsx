@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, FlatList, StyleSheet, ScrollView } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../../../config/FirebaseConfig';
 import Header from '../../../components/Header';
 import Colors from '../../../constant/Colors';
 import BackBtn from '../../../components/BackBtn';

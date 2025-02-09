@@ -10,8 +10,6 @@ import {
 import React, { useState } from "react";
 import Colors from "../constant/Colors";
 import { useRouter } from "expo-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../config/FirebaseConfig";
 
 export default function SignInComponent({ promptAsync }) {
   const router = useRouter();
