@@ -1,78 +1,120 @@
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'expo-router';
-import Header from '../../components/Header';
-import Colors from '../../constant/Colors';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+  Image,
+} from "react-native";
+import React, { useEffect, useState, useContext } from "react";
+import { useRouter } from "expo-router";
+import { AuthContext } from "../../context/AuthContext"; // Importa el contexto de autenticación
+import Header from "../../components/Header";
+import Colors from "../../constant/Colors";
 
 export default function Home() {
   const router = useRouter();
-  const [userName, setUserName] = useState("Usuario");
-  const [userEmail, setUserEmail] = useState(null);
+  const { user, loadingAuth } = useContext(AuthContext); // Obtiene el usuario del contexto
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Verificar autenticación al cargar el componente
+  useEffect(() => {
+    if (!loadingAuth && !user) {
+      router.replace("/login"); // Redirige si no está autenticado
+    }
+  }, [user, loadingAuth]);
   
 
   return (
-    <View style={{flex:1}}>
-      {loading?<ActivityIndicator/>:<View style={{ flex: 1 }}>
-      <Header />
-      <Image source={require('../../assets/images/background-login.png')} style={{width:'100%', height:300 }}/>
-      <View style={styles.container}>
-       <Text style={styles.welcomeText}>Hola, {userName} 👋</Text>
-      <Text style={styles.subtitle}>Bienvenido a CuraMetric</Text>
-
-      {/* Acceso rápido a la lista de pacientes */}
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/PatientList')}>
-        <Text style={styles.buttonText}>📋 Ver lista de pacientes</Text>
-      </TouchableOpacity>
-
-      {/* Resumen rápido de datos */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statBox}>
-          {loading ? 
-          <ActivityIndicator size={'large'} style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}/>
-          :
-          <Text style={styles.statNumber}>{patients.length}</Text>}
-          <Text style={styles.statLabel}>Pacientes registrados</Text>
-        </View>
-        <View style={styles.statBox}>
-        {loading ? 
-          <ActivityIndicator size={'large'} style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}/>
-          :
-          <Text style={styles.statNumber}>--</Text>}
-          <Text style={styles.statLabel}>Curaciones registradas</Text>
-        </View>
-      </View>
-
-      {/* Últimos pacientes agregados */}
-      <Text style={styles.sectionTitle}>Últimos pacientes</Text>
+    <View style={{ flex: 1 }}>
       {loading ? (
-        <Text style={styles.loadingText}>Cargando...</Text>
+        <ActivityIndicator />
       ) : (
-        <FlatList
-          data={patients.slice(0, 5)} // Muestra solo los 5 más recientes
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.patientItem} onPress={() => router.push(`/patient/${item.id}`)}>
-              <Text style={styles.patientName}>{item.name}</Text>
-              <Text style={styles.patientRut}>RUT: {item.rut}</Text>
+        <View style={{ flex: 1 }}>
+          <Header />
+          <Image
+            source={require("../../assets/images/background-login.png")}
+            style={{ width: "100%", height: 300 }}
+          />
+          <View style={styles.container}>
+            <Text style={styles.welcomeText}>
+              Hola, {user ? user.username : "Usuario"} 👋
+            </Text>
+            <Text style={styles.subtitle}>Bienvenido a CuraMetric</Text>
+
+            {/* Acceso rápido a la lista de pacientes */}
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => router.push("/PatientList")}
+            >
+              <Text style={styles.buttonText}>📋 Ver lista de pacientes</Text>
             </TouchableOpacity>
-          )}
-          ListEmptyComponent={<Text style={styles.emptyText}>No has registrado pacientes aún.</Text>}
-        />
+
+            {/* Resumen rápido de datos */}
+            <View style={styles.statsContainer}>
+              <View style={styles.statBox}>
+                {loading ? (
+                  <ActivityIndicator
+                    size={"large"}
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  />
+                ) : (
+                  <Text style={styles.statNumber}>{patients.length}</Text>
+                )}
+                <Text style={styles.statLabel}>Pacientes registrados</Text>
+              </View>
+              <View style={styles.statBox}>
+                {loading ? (
+                  <ActivityIndicator
+                    size={"large"}
+                    style={{
+                      flex: 1,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  />
+                ) : (
+                  <Text style={styles.statNumber}>--</Text>
+                )}
+                <Text style={styles.statLabel}>Curaciones registradas</Text>
+              </View>
+            </View>
+
+            {/* Últimos pacientes agregados */}
+            <Text style={styles.sectionTitle}>Últimos pacientes</Text>
+            {loading ? (
+              <Text style={styles.loadingText}>Cargando...</Text>
+            ) : (
+              <FlatList
+                data={patients.slice(0, 5)} // Muestra solo los 5 más recientes
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.patientItem}
+                    onPress={() => router.push(`/patient/${item.id}`)}
+                  >
+                    <Text style={styles.patientName}>{item.name}</Text>
+                    <Text style={styles.patientRut}>RUT: {item.rut}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>
+                    No has registrado pacientes aún.
+                  </Text>
+                }
+              />
+            )}
+          </View>
+        </View>
       )}
     </View>
-    </View>}
-    </View>
-  )
+  );
 }
 
 // Estilos mejorados

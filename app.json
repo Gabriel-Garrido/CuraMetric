@@ -8,7 +8,11 @@
     "scheme": "curametric",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.webcobra.curametric"
@@ -35,7 +39,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
@@ -44,11 +49,12 @@
       "router": {
         "origin": false
       },
+      "GOOGLE_CLIENT_ID_ANDROID": "10970491800-np2t9dte7b4d4aipfm7h908s13jr9kql.apps.googleusercontent.com",
+      "GOOGLE_CLIENT_ID_IOS": "10970491800-vrir16rlhhr47grgqnheb907amg4efpk.apps.googleusercontent.com",
+      "GOOGLE_CLIENT_ID_WEB": "10970491800-kbvm30kb2l216jm121qaiurevpic6i5a.apps.googleusercontent.com",
       "eas": {
         "projectId": "d7cc4b90-d9a8-4ed5-9860-dd389bd9abbe"
       }
-      
-      
     }
   }
 }

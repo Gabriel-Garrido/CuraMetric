@@ -1,34 +1,40 @@
-import React, { createContext, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useState, useEffect } from "react";
+import axios from "axios";
+import GoogleLogin from "../components/GoogleLogin";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
 
-    const loginWithGoogle = async (token) => {
-        try {
-            const response = await fetch("http://localhost:8000/auth/google/", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token }),
-            });
+  const handleLoginSuccess = async (googleToken) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/auth/google/`,
+        { token: googleToken },
+        { withCredentials: true }
+      );
+      setUser(response.data); // Guarda el usuario autenticado
+    } catch (error) {
+      console.error("Error al verificar la autenticación:", error);
+      setUser(null);
+    } finally {
+      setLoadingAuth(false);
+    }
+  };
 
-            const data = await response.json();
-            if (response.ok) {
-                setUser(data);
-                if (data.access) {
-                    await AsyncStorage.setItem("token", data.access);
-                }
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
+  useEffect(() => {
+    setLoadingAuth(false); // Finaliza la carga inicial
+  }, []);
 
-    return (
-        <AuthContext.Provider value={{ user, loginWithGoogle }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  return (
+    <AuthContext.Provider value={{ user, loadingAuth }}>
+      {user ? (
+        children
+      ) : (
+        <GoogleLogin onLoginSuccess={handleLoginSuccess} />
+      )}
+    </AuthContext.Provider>
+  );
 };
